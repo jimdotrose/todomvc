@@ -5,7 +5,7 @@ version: 2.1
 executors:
   node-executor:
     docker:
-      - image: cimg/node:18.17.0
+      - image: cimg/node:8.17.0
     working_directory: ~/repo
 
 # Define reusable commands
@@ -36,13 +36,24 @@ jobs:
       - checkout
       - restore_npm_cache
       - run:
+          name: Set TMPDIR for PhantomJS
+          command: |
+            echo 'export TMPDIR=/tmp' >> $BASH_ENV
+            source $BASH_ENV
+      - run:
           name: Install dependencies
           command: |
-            if [ -f "package-lock.json" ]; then
-              npm ci
-            else
-              npm install
-            fi
+            # Set TMPDIR to fix PhantomJS installation
+            export TMPDIR=/tmp
+            
+            # Skip PhantomJS binary download
+            export PHANTOMJS_SKIP_DOWNLOAD=true
+            
+            # Remove package-lock.json to avoid version conflicts
+            rm -f package-lock.json
+            
+            # Install with legacy peer deps flag for older packages
+            npm install --legacy-peer-deps
       - save_npm_cache
       - persist_to_workspace:
           root: ~/repo
@@ -178,7 +189,12 @@ jobs:
       - run:
           name: Run security audit
           command: |
-            npm audit --audit-level=moderate || true
+            # Skip audit for old Node versions as it's not fully supported
+            if [[ $(node -v) =~ ^v8 ]]; then
+              echo "Skipping audit for Node 8.x"
+            else
+              npm audit --audit-level=moderate || true
+            fi
       - run:
           name: Check for outdated packages
           command: |
