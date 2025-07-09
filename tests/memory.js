@@ -15,30 +15,12 @@ if (typeof process.env.CHROME_PATH !== 'undefined') {
 var driver = drool.start(driverConfig);
 var list = frameworkPathLookup(argv.framework);
 
-function idApp() {
-	return driver.findElement(drool.webdriver.By.css('#todoapp'))
-	.then(function () { return true; })
-	.thenCatch(function () { return false; });
-}
-
 function newTodoSelector() {
-	return idApp().then(function (isId) {
-		if (isId) {
-			return '#new-todo';
-		}
-
-		return '.new-todo';
-	});
+        return '#new-todo, .new-todo';
 }
 
 function listSelector() {
-	return idApp().then(function (isId) {
-		if (isId) {
-			return '#todo-list li';
-		}
-
-		return '.todo-list li';
-	});
+        return '#todo-list li, .todo-list li';
 }
 
 list.forEach(function (framework) {
@@ -50,13 +32,13 @@ list.forEach(function (framework) {
 		action: function (name) {
 			driver.wait(function () {
 				driver.sleep(500);
-				return driver.findElement(drool.webdriver.By.css(newTodoSelector(name)))
-					.sendKeys('find magical goats', drool.webdriver.Key.ENTER)
-					.thenCatch(function () {
-						return false;
-					})
+                                return driver.findElement(drool.webdriver.By.css(newTodoSelector()))
+                                        .sendKeys('find magical goats', drool.webdriver.Key.ENTER)
+                                        .catch(function () {
+                                                return false;
+                                        })
 				.then(function () {
-					return driver.findElement(drool.webdriver.By.css(listSelector(name))).isDisplayed()
+                                        return driver.findElement(drool.webdriver.By.css(listSelector())).isDisplayed()
 						.then(function () {
 							return true;
 						});
@@ -64,10 +46,10 @@ list.forEach(function (framework) {
 			}, 10000);
 
 			driver.wait(function () {
-				return driver.findElement(drool.webdriver.By.css(listSelector(name))).click()
-					.thenCatch(function () {
-						return false;
-					})
+                                return driver.findElement(drool.webdriver.By.css(listSelector())).click()
+                                        .catch(function () {
+                                                return false;
+                                        })
 				.then(function () {
 					return true;
 				});
