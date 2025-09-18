@@ -968,6 +968,26 @@ Cypress._.times(N, () => {
           .contains(selectors.filterItems, 'Completed')
           .should('have.class', 'selected')
       })
+
+      if (framework === 'react') {
+        it('should keep toggle all visible and unchecked on completed route until all todos are done', function () {
+          cy.get('@todos').eq(0).find('.toggle').check()
+
+          cy.contains(selectors.filterItems, 'Completed').click()
+          cy.hash().should('eq', '#/completed')
+          cy
+            .get(selectors.toggleAll)
+            .should('be.visible')
+            .and('not.be.checked')
+
+          cy.contains(selectors.filterItems, 'All').click()
+          cy.get('@todos').eq(1).find('.toggle').check()
+          cy.get('@todos').eq(2).find('.toggle').check()
+          cy.contains(selectors.filterItems, 'Completed').click()
+          cy.hash().should('eq', '#/completed')
+          cy.get(selectors.toggleAll).should('be.checked')
+        })
+      }
     })
   })
 })
